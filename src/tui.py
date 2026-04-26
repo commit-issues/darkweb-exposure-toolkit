@@ -31,6 +31,16 @@ _CREATED = "2025-04-26"
 _TOOL = "d4rkw3b — darkweb-exposure-toolkit"
 
 
+# Initialize colorama on Windows for ANSI color support
+if os.name == "nt":
+    try:
+        import colorama  # pylint: disable=import-outside-toplevel
+
+        colorama.init()
+    except ImportError:
+        pass  # colorama optional — tool works without it
+
+
 def _detect_color_support() -> str:
     """
     Detect terminal color capability.

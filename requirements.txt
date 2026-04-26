@@ -3,3 +3,6 @@
 
 requests==2.33.0
 python-dotenv==1.2.2
+
+# Windows only — install for colored terminal output
+# colorama==0.4.6

@@ -52,6 +52,17 @@ def _is_locked() -> bool:
         return False
     try:
         pid = int(LOCK_FILE.read_text(encoding="utf-8").strip())
+        if os.name == "nt":
+            # Windows — check process exists via tasklist
+            import subprocess  # pylint: disable=import-outside-toplevel  # nosec B404
+
+            result = subprocess.run(  # nosec B603 B607
+                ["tasklist", "/FI", f"PID eq {pid}"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            return str(pid) in result.stdout
         os.kill(pid, 0)
         return True
     except (ValueError, OSError):

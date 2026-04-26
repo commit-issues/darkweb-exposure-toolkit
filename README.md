@@ -101,16 +101,20 @@ This tool is built entirely on free, public APIs. No hidden costs. No subscripti
 
 ### Installation
 
+**macOS / Linux:**
 ```bash
-# Clone the repository
 git clone https://github.com/commit-issues/darkweb-exposure-toolkit.git
 cd darkweb-exposure-toolkit
-
-# Install dependencies
 pip3 install -r requirements.txt --break-system-packages
-
-# Set up your environment
 cp .env.example .env
+```
+
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/commit-issues/darkweb-exposure-toolkit.git
+cd darkweb-exposure-toolkit
+pip install -r requirements.txt
+copy .env.example .env
 ```
 
 Open `.env` in any text editor and fill in your values.
