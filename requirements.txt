@@ -1,0 +1,5 @@
+# darkweb-exposure-toolkit dependencies
+# Install with: pip3 install -r requirements.txt --break-system-packages
+
+requests==2.33.0
+python-dotenv==1.2.2
