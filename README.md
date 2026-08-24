@@ -42,7 +42,7 @@ No passwords required. All checks use publicly indexed breach data — the same 
 | Phone numbers | HIBP breach lookup | ✅ Yes |
 | Platform usernames | HIBP + paste sites (Discord, Steam, Reddit, Instagram + more) | Runtime prompt |
 | Passwords | k-anonymity — only 5-char hash prefix transmitted, never your full password | Runtime prompt |
-| API tokens & keys | GitHub public code exposure scan | Runtime prompt |
+| API tokens & keys | Hash-based leak check (HasMySecretLeaked) + optional raw GitHub search | Runtime prompt |
 
 ---
 
@@ -141,6 +141,30 @@ Force a cache refresh before scanning:
 python3 src/run_all_checks.py --refresh
 ```
 
+If you've configured a large number of identifiers (more than 20) and want to proceed anyway:
+
+```bash
+python3 src/run_all_checks.py --force
+```
+
+---
+
+## 🔗 Local Correlation Engine
+
+Cross-reference everything the tool has already found against your configured identifiers — entirely offline, no network calls, no new API keys.
+
+```bash
+python3 src/correlate.py
+```
+
+Sorts results into three files under `data/correlation/`:
+
+| File | Contents |
+|---|---|
+| `confirmed.json` | Exact matches |
+| `review.json` | Possible matches worth a manual look (e.g. plus-alias email variants) |
+| `clean.json` | Identifiers with no matches found |
+
 ---
 
 ## 📂 Project Structure
@@ -154,9 +178,11 @@ darkweb-exposure-toolkit/
 │
 ├── src/
 │   ├── run_all_checks.py     ← Main entry point
+│   ├── correlate.py          ← Local correlation engine (offline)
 │   ├── tui.py                ← Terminal UI, banner, pulse spinner
 │   ├── hibp_check.py         ← HIBP breach + k-anonymity password check
 │   ├── github_search.py      ← GitHub public code exposure scan
+│   ├── secret_leak_check.py  ← Hash-based API key/token leak check
 │   ├── platform_check.py     ← Platform username checks (Discord, Steam + more)
 │   ├── breach_scraper.py     ← Multi-source breach intelligence scraper
 │   ├── scheduler.py          ← 24hr cache refresh scheduler

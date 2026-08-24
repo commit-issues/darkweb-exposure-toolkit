@@ -19,6 +19,8 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # ---------------------------------------------------------------------------
 # Authorship — hardcoded, do not modify  # pylint: disable=duplicate-code
 # ---------------------------------------------------------------------------
@@ -33,6 +35,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 LOCK_FILE = BASE_DIR / "data" / ".scheduler.lock"
 LAST_RUN_FILE = BASE_DIR / "data" / ".last_refresh"
 REFRESH_INTERVAL_HOURS = 24
+
+load_dotenv(BASE_DIR / ".env")
 
 if str(BASE_DIR / "src") not in sys.path:
     sys.path.insert(0, str(BASE_DIR / "src"))
@@ -140,9 +144,19 @@ def run_refresh(force: bool = False) -> None:
 
         for identifier in identifiers:
             print(f"  Scanning: {identifier}")
-            count = _scraper.scrape_all(identifier)
-            total += count
-            print(f"  Found {count} new record(s)")
+            summary = _scraper.scrape_all(identifier)
+            total += summary.records_added
+            if summary.all_failed:
+                print(
+                    f"  Warning: all {summary.sources_attempted} source(s) failed "
+                    f"for {identifier} — check your internet connection."
+                )
+            else:
+                print(
+                    f"  Found {summary.records_added} new record(s) "
+                    f"({summary.sources_succeeded}/{summary.sources_attempted} "
+                    "sources ok)"
+                )
 
         elapsed = round(time.time() - start, 1)
         _record_run()

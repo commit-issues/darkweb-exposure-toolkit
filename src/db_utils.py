@@ -145,7 +145,7 @@ def search_cache(identifier: str) -> List[Dict]:
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
-        "SELECT source, breach_name, data_classes, breach_date, cached_at "
+        "SELECT source, breach_name, data_classes, breach_date, cached_at, raw_json "
         "FROM breach_cache WHERE identifier = ? "
         "ORDER BY breach_date DESC",
         (identifier,),
@@ -156,6 +156,7 @@ def search_cache(identifier: str) -> List[Dict]:
         "data_classes",
         "breach_date",
         "cached_at",
+        "raw_json",
     ]
     results = [dict(zip(columns, row)) for row in cur.fetchall()]
     conn.close()

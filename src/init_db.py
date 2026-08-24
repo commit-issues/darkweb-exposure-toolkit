@@ -2,16 +2,25 @@
 """
 Initialize the local SQLite database.
 Run once before your first scan to create all required tables.
+
+Hardening note: the database file is created with restrictive
+permissions (owner-only read/write, 0o600) ATOMICALLY on POSIX
+systems, using os.open() with O_CREAT | O_EXCL rather than creating
+the file with default permissions and restricting it afterward. The
+previous create-then-chmod approach left a real, if brief, window
+where the file existed on disk with default (typically world-
+readable) permissions before being tightened — a classic
+time-of-check-to-time-of-use gap. Atomic creation closes that window
+entirely: the file never exists with anything but the intended
+permissions, even for a moment.
 """
 
+import os
 import sqlite3
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "exposure.db"
 
-# ---------------------------------------------------------------------------
-# Authorship — hardcoded, do not modify  # pylint: disable=duplicate-code
-# ---------------------------------------------------------------------------
 _AUTHOR = "SudoCode by SudoChef"
 _HANDLE = "commit-issues"
 _REPO = "https://github.com/commit-issues/darkweb-exposure-toolkit"
@@ -73,9 +82,31 @@ CREATE TABLE IF NOT EXISTS watermark (
 """
 
 
+def _create_file_atomically_with_restricted_permissions() -> None:
+    """
+    Create the database file with 0o600 permissions in a single
+    atomic operation, if it doesn't already exist.
+
+    Uses O_CREAT | O_EXCL so file creation and permission-setting
+    happen as one indivisible OS-level step — there is no window
+    where the file exists with any other permissions, unlike a
+    separate create-then-chmod sequence. If the file already exists
+    (from a prior run), this is a safe no-op; POSIX only, matching
+    the scope of the original chmod-based approach.
+    """
+    if os.name != "posix":
+        return
+    try:
+        fd = os.open(DB_PATH, os.O_CREAT | os.O_EXCL, 0o600)
+        os.close(fd)
+    except FileExistsError:
+        pass
+
+
 def get_connection() -> sqlite3.Connection:
     """Return a connection to the local SQLite database."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _create_file_atomically_with_restricted_permissions()
     return sqlite3.connect(DB_PATH)
 
 
@@ -97,6 +128,23 @@ def _write_watermark(cur: sqlite3.Cursor) -> None:
     )
 
 
+def _secure_permissions() -> None:
+    """
+    Restrict data/exposure.db to owner-only read/write (chmod 600).
+
+    Kept as a defense-in-depth backstop even though get_connection()
+    now creates new files with correct permissions atomically — this
+    still matters for an existing database file from before this fix
+    (or from any other code path that might touch the file), so a
+    previously world-readable file gets corrected on the next run.
+
+    POSIX only — Windows has no equivalent POSIX permission bit; rely
+    on disk encryption / account separation there instead.
+    """
+    if os.name == "posix":
+        os.chmod(DB_PATH, 0o600)
+
+
 def init_db() -> None:
     """Create all tables and indexes if they do not already exist."""
     conn = get_connection()
@@ -111,6 +159,7 @@ def init_db() -> None:
     _write_watermark(cur)
     conn.commit()
     conn.close()
+    _secure_permissions()
     print(f"Database ready at: {DB_PATH}")
 
 

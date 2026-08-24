@@ -74,6 +74,119 @@ Checks email reputation and breach history. Free key, no credit card.
 
 ---
 
+## Step 4b — ggshield (for the token/API-key leak check)
+
+The token/API-key check uses a tool called **ggshield** to see if a key you
+paste in has already leaked publicly — without ever sending the key itself
+anywhere. Only a scrambled fingerprint of it is sent, never the real value.
+
+This is a separate program, not something `pip3 install -r requirements.txt`
+installs for you. It's optional — if you skip this, the tool still works,
+it just won't offer this specific check. These steps assume you are typing
+commands into a terminal (Terminal.app on macOS, or PowerShell/Command
+Prompt on Windows) for the first time — every command below is exact,
+copy-paste it as written.
+
+### 4b.1 — Check if you already have `pipx`
+
+`pipx` is a small program that installs tools like `ggshield` safely, off
+to the side, so it can't interfere with anything else on your computer.
+Type this and press Enter:
+
+```bash
+pipx --version
+```
+
+**If you see a version number** (e.g. `1.7.1`), skip to step 4b.3 — you
+already have it.
+
+**If you see an error** like `command not found: pipx` or
+`'pipx' is not recognized`, continue to step 4b.2.
+
+### 4b.2 — Install `pipx`
+
+**macOS / Linux:**
+
+```bash
+python3 -m pip install --user pipx
+python3 -m pipx ensurepath
+```
+
+**Windows (PowerShell):**
+
+```powershell
+python -m pip install --user pipx
+python -m pipx ensurepath
+```
+
+After running these two commands, you'll see some text scroll by — that's
+normal. Once it's done, **close your terminal window completely and open a
+new one.** This step is required — the second command changes a setting
+that only takes effect in a brand new terminal window.
+
+In the new window, confirm it worked:
+
+```bash
+pipx --version
+```
+
+You should now see a version number. If you still see an error, restart
+your computer once and try again — this resolves it in almost all cases.
+
+### 4b.3 — Install `ggshield`
+
+`ggshield` is pinned to an exact version here rather than left open —
+since it lives outside `requirements.txt`, it does not get automatic
+`pip-audit` coverage. Check `pipx list --outdated` occasionally and
+review the changelog before bumping this version.
+
+```bash
+pipx install ggshield==1.52.2
+```
+
+**What success looks like:** a few lines of text ending with something
+like:
+
+```
+  installed package ggshield 1.52.2, installed using Python 3.x.x
+  These apps are now globally available
+    - ggshield
+done! ✨ 🌟 ✨
+```
+
+Confirm it's really there:
+
+```bash
+ggshield --version
+```
+
+**What success looks like:** a single line such as `ggshield, version
+1.52.2`. If instead you see `command not found` / `not recognized`, close
+and reopen your terminal one more time (same reason as step 4b.2 — pipx
+just changed your PATH and your current terminal window hasn't picked it
+up yet), then try `ggshield --version` again.
+
+### 4b.4 — That's it — no account needed
+
+Unlike the other sources in this guide, **you do not need to sign up for
+anything** to use the basic token-leak check — it works anonymously with a
+daily usage limit. The tool will tell you exactly how many checks you have
+left each time you run it.
+
+If you want a higher daily limit, you can optionally create a free account
+at https://dashboard.gitguardian.com, generate an API key from your
+dashboard, and paste it into your `.env` file as:
+
+```
+GITGUARDIAN_API_KEY=paste-your-key-here
+```
+
+This is entirely optional and nothing is shared or bundled on your behalf
+— it's your own key, from your own free account, same as every other key
+in this guide.
+
+---
+
 ## Step 5 — OSINTLeak API Key (free starter)
 
 Checks stealer logs and dark web forum data. Free starter plan available.
