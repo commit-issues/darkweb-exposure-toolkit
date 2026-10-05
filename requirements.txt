@@ -2,7 +2,7 @@
 # Install with: pip3 install -r requirements.txt --break-system-packages
 
 requests==2.34.2
-python-dotenv==1.2.2
+python-dotenv==1.2.4
 
 # Windows only — install for colored terminal output
 # colorama==0.4.6
